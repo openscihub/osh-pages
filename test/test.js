@@ -4,6 +4,8 @@ var expect = require('expect.js');
 var supertest = require('supertest');
 var async = require('async');
 var morgan = require('morgan');
+var http = require('http');
+var host = require('osh-test-host');
 
 describe('pages', function() {
   describe('server', function() {
@@ -15,8 +17,8 @@ describe('pages', function() {
       pages.bundle({output: __dirname + '/bundles'});
       pages.on('bundled', function(entryInfo) {
         //console.log(JSON.stringify(entryInfo, null, 2));
-        expect(entryInfo.user.length).to.be(4);
-        expect(entryInfo.article.length).to.be(4);
+        expect(entryInfo.user.length).to.be(5);
+        expect(entryInfo.article.length).to.be(5);
         done();
       });
     });
@@ -35,12 +37,28 @@ describe('pages', function() {
       pages.bundle({output: __dirname + '/bundles'});
       pages.on('bundled', function(entryInfo) {
         //console.log(JSON.stringify(entryInfo, null, 2));
-        expect(entryInfo.user.length).to.be(4);
-        expect(entryInfo.article.length).to.be(4);
+        expect(entryInfo.user.length).to.be(5);
+        expect(entryInfo.article.length).to.be(5);
 
         var request = supertest(pages.app);
         request.get('/users/tory')
         .expect(200, /hi user: tory/, done);
+      });
+    });
+
+    it('should redirect', function(done) {
+      var pages = Pages();
+      pages.add('redirector', require.resolve('./sample-pages/redirector'));
+      pages.get('redirector', function(req, res) {
+        res.page.send();
+      });
+      pages.bundle({output: __dirname + '/bundles'});
+      pages.on('bundled', function() {
+
+        supertest(pages.app)
+        .get('/redirector')
+        .redirects(0)
+        .expect(302, done);
       });
     });
   });
@@ -55,8 +73,9 @@ describe('pages', function() {
     //  when the 
     var tests = [
       'interrupt',
-      'visit',
+      'redirector',
       'stash'
+      //'visit',
     ];
 
     var runner = express();
@@ -78,7 +97,9 @@ describe('pages', function() {
         },
         done
       );
+    });
 
+    before(function(done) {
       var i = -1;
       var results = [];
       runner.get('/', function(req, res) {
@@ -109,7 +130,7 @@ describe('pages', function() {
         );
       });
 
-      server = http.createServer(app);
+      server = http.createServer(runner);
       server.listen(host.port, done);
     });
 
@@ -117,7 +138,7 @@ describe('pages', function() {
      *  Test stuff.
      */
 
-    it.only('should complete browser tests', function(done) {
+    it('should complete browser tests', function(done) {
       this.timeout(0);
       console.log('Browser to http://localhost:3333. Ctrl-C to finish.');
       process.on('SIGINT', function() {

@@ -1,8 +1,9 @@
 var Path = require('osh-path');
+var latency = require('./latency');
 
 module.exports = {
   path: Path({
-    pattern: '/' + __dirname
+    pattern: '/interrupt'
   }),
 
   get: function(done) {
@@ -17,14 +18,14 @@ module.exports = {
     console.log('running /interrupt ui...');
     var err;
     var pages = this.pages;
-    pages.get('user', {user: 'adam'},
+    pages.get('user', {username: 'adam'},
       function(_err) {
         err = _err;
       }
     );
     setTimeout(
       function() {
-        pages.get('user', {user: 'tory'},
+        pages.get('user', {username: 'tory'},
           function(_err) {
             document.location = (
               err ?

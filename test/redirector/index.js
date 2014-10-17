@@ -2,20 +2,20 @@ var serveStatic = require('serve-static');
 
 module.exports = function(pages) {
   pages.add({
-    run: __dirname + '/run-page',
-    user: __dirname + '/user-page'
+    run: require.resolve('./run-page')
+    //redirector: require.resolve('../sample-pages/redirector')
   });
 
   pages.get('run', function(req, res) {res.page.send();});
-  pages.get('user', function(req, res) {res.page.send();});
+  //pages.get('redirector', function(req, res) {res.page.send();});
 
   pages.bundle({
     output: __dirname + '/bundles',
-    prefix: '/interrupt/'
+    prefix: '/redirector/'
   });
 
   pages.app.use(
-    '/interrupt',
+    '/redirector',
     serveStatic(__dirname + '/bundles')
   );
 };

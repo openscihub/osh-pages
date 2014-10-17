@@ -3,8 +3,8 @@ var api = require('./api');
 
 module.exports = {
   path: Path({
-    pattern: '/' + __dirname + '/users/<username>',
-    params: {user: /^\w+$/},
+    pattern: '/interrupt/users/<username>',
+    params: {username: /^\w+$/},
     query: {age: /^[0-9]+$/}
   }),
 
@@ -15,9 +15,14 @@ module.exports = {
     api.getUser(page.props.username, function(err, user) {
       page.user = user;
       page.body = (
-        '<h1 id="name">' + user.name + '</h1>';
+        '<h1 id="name">' + user.name + '</h1>'
       );
       done();
+    });
+  },
+
+  post: function(done) {
+    api.newUser(this.user, function(err, user) {
     });
   }
 };
