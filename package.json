@@ -10,7 +10,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha -C"
+    "test": "mocha -C test/test.js"
   },
   "author": "Carl A. Bauer",
   "license": "MIT",
@@ -18,13 +18,15 @@
     "async": "^0.9.0",
     "expect.js": "^0.3.1",
     "morgan": "^1.3.2",
+    "osh-iso-test": "latest",
+    "osh-page": "latest",
     "osh-test-host": "0.0.0",
     "serve-static": "^1.6.4",
     "supertest": "^0.14.0"
   },
   "dependencies": {
     "dynafetch": "0.0.3",
-    "dynapack": "^0.2.2",
+    "dynapack": "^0.2.4",
     "escape-html": "^1.0.1",
     "express": "^4.9.5",
     "osh-class": "0.0.1",

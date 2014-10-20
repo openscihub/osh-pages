@@ -1,9 +1,9 @@
-var Path = require('osh-path');
+var Page = require('osh-page');
 
-module.exports = {
-  path: Path({
+module.exports = Page.extend({
+  path: {
     pattern: '/stash'
-  }),
+  },
 
   get: function(done) {
     var props = this.props;
@@ -39,7 +39,7 @@ module.exports = {
       text: document.getElementById('ipsum').textContent,
     };
 
-    if (/incididunt/.test(document.getElementById('__stash').textContent)) {
+    if (/incididunt/.test(document.getElementById('__recovery').textContent)) {
       fail = 'full text found in stash';
     }
     if (!/incididunt/.test(article.text)) {
@@ -52,4 +52,4 @@ module.exports = {
       '/?result=Success'
     );
   }
-};
+});

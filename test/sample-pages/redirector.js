@@ -1,6 +1,7 @@
 var Path = require('osh-path');
+var Page = require('osh-page');
 
-module.exports = {
+module.exports = Page.extend({
   path: Path({
     pattern: '/redirector',
     query: {stay: /[^\/]+/}
@@ -15,4 +16,4 @@ module.exports = {
     }
     done();
   }
-};
+});

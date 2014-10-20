@@ -6,6 +6,7 @@ var async = require('async');
 var morgan = require('morgan');
 var http = require('http');
 var host = require('osh-test-host');
+var iso = require('osh-iso-test');
 
 describe('pages', function() {
   describe('server', function() {
@@ -63,89 +64,99 @@ describe('pages', function() {
     });
   });
 
-  describe('browser', function() {
-
-    //  Each name is a subdirectory of the test directory
-    //  that contains an index.js file that exports a
-    //  name/page-path mapping.
-    //
-    //  The mapping should have a homepage that runs a test
-    //  when the 
-    var tests = [
-      'interrupt',
-      'redirector',
-      'stash'
-      //'visit',
-    ];
-
-    var runner = express();
-    runner.use(morgan('combined'));
-
-    before(function(done) {
-
-      async.each(
-        tests,
-        function(test, done) {
-          var pages = Pages();
-          var dir = __dirname + '/' + test;
-          var init = require(dir);
-          init(pages); 
-          pages.on('bundled', function() {
-            runner.use(pages.app);
-            done();
-          });
-        },
-        done
-      );
-    });
-
-    before(function(done) {
-      var i = -1;
-      var results = [];
-      runner.get('/', function(req, res) {
-        var result = req.query.result;
-        var nextTest;
-        if (result) {
-          nextTest = tests[++i];
-          results.push(result);
-        }
-        else {
-          i = 0;
-          nextTest = tests[i];
-          results = [];
-        }
-        res.send(
-          '<html><body>' +
-          '<ul>' +
-          results.map(function(result, index) {
-            return '<li>' + tests[index] + ': ' + result + '</li>';
-          }).join('') +
-          '</ul>' +
-          (
-            nextTest ?
-            '<script>document.location = "/' + nextTest + '";</script>' :
-            ''
-          ) +
-          '</body></html>'
-        );
-      });
-
-      server = http.createServer(runner);
-      server.listen(host.port, done);
-    });
-
-    /**
-     *  Test stuff.
-     */
-
-    it('should complete browser tests', function(done) {
+  describe.only('iso', function() {
+    
+    it('should pass all tests', function(done) {
       this.timeout(0);
-      console.log('Browser to http://localhost:3333. Ctrl-C to finish.');
-      process.on('SIGINT', function() {
-        console.log('Stopping server...');
-        server && server.close();
-        process.exit();
-      });
+      iso({
+        basedir: __dirname + '/iso',
+        manual: true
+      }, done);
     });
+
   });
+
+//    //  Each name is a subdirectory of the test directory
+//    //  that contains an index.js file that exports a
+//    //  name/page-path mapping.
+//    //
+//    //  The mapping should have a homepage that runs a test
+//    //  when the 
+//    var tests = [
+//      'interrupt',
+//      'redirector',
+//      'stash'
+//      //'visit',
+//    ];
+//
+//    var runner = express();
+//    runner.use(morgan('combined'));
+//
+//    before(function(done) {
+//
+//      async.each(
+//        tests,
+//        function(test, done) {
+//          var pages = Pages();
+//          var dir = __dirname + '/' + test;
+//          var init = require(dir);
+//          init(pages); 
+//          pages.on('bundled', function() {
+//            runner.use(pages.app);
+//            done();
+//          });
+//        },
+//        done
+//      );
+//    });
+//
+//    before(function(done) {
+//      var i = -1;
+//      var results = [];
+//      runner.get('/', function(req, res) {
+//        var result = req.query.result;
+//        var nextTest;
+//        if (result) {
+//          nextTest = tests[++i];
+//          results.push(result);
+//        }
+//        else {
+//          i = 0;
+//          nextTest = tests[i];
+//          results = [];
+//        }
+//        res.send(
+//          '<html><body>' +
+//          '<ul>' +
+//          results.map(function(result, index) {
+//            return '<li>' + tests[index] + ': ' + result + '</li>';
+//          }).join('') +
+//          '</ul>' +
+//          (
+//            nextTest ?
+//            '<script>document.location = "/' + nextTest + '";</script>' :
+//            ''
+//          ) +
+//          '</body></html>'
+//        );
+//      });
+//
+//      server = http.createServer(runner);
+//      server.listen(host.port, done);
+//    });
+//
+//    /**
+//     *  Test stuff.
+//     */
+//
+//    it('should complete browser tests', function(done) {
+//      this.timeout(0);
+//      console.log('Browser to http://localhost:3333. Ctrl-C to finish.');
+//      process.on('SIGINT', function() {
+//        console.log('Stopping server...');
+//        server && server.close();
+//        process.exit();
+//      });
+//    });
+//  });
 });

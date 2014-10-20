@@ -1,6 +1,7 @@
 var Path = require('osh-path');
+var Page = require('osh-page');
 
-module.exports = {
+module.exports = Page.extend({
   path: Path({
     pattern: '/users/<username>',
     params: {
@@ -16,4 +17,4 @@ module.exports = {
     this.body = 'hi user: ' + this.props.username;
     done();
   }
-};
+});

@@ -1,16 +1,16 @@
-var Path = require('osh-path');
+var Page = require('osh-page');
 var expect = require('expect.js');
 
 var firstRun = true;
 
-module.exports = {
-  path: Path({
+module.exports = Page.extend({
+  path: {
     pattern: '/redirector',
     query: {
       redirect: /^(true|false)$/,
       redirected: /^(true|false)$/
     }
-  }),
+  },
 
   get: function(done) {
     if (this.props.redirect) {
@@ -32,4 +32,4 @@ module.exports = {
     }
     firstRun = false;
   }
-};
+});
