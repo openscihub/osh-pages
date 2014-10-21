@@ -1,6 +1,6 @@
 {
   "name": "osh-pages",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "openscihub.org: manage web pages isomorphically",
   "main": "index.js",
   "browser": {
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "dynafetch": "0.0.3",
-    "dynapack": "^0.2.4",
+    "dynapack": "^0.2.5",
     "escape-html": "^1.0.1",
     "express": "^4.9.5",
     "osh-class": "0.0.1",

@@ -24,6 +24,11 @@ module.exports = function(app, done) {
     prefix: this.route + '/'
   });
 
+  pages.once('error', function(err) {
+    console.log(err);
+    done(err);
+  });
+
   app.use(
     serveStatic(__dirname + '/bundles')
   );
