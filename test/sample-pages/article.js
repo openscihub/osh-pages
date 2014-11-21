@@ -1,3 +1,3 @@
-module.exports = require('osh-page').extend({
-  get: function() {}
-});
+module.exports = {
+  read: function(_, render) {render()}
+};

@@ -8,68 +8,121 @@ var http = require('http');
 var host = require('osh-test-host');
 var iso = require('osh-iso-test');
 
+
 describe('pages', function() {
   describe('server', function() {
     it('should bundle', function(done) {
       this.timeout(10.e3);
-      var pages = Pages();
-      pages.add('user', require.resolve('./sample-pages/user'));
-      pages.add('article', require.resolve('./sample-pages/article'));
+      var pages = Pages({
+        basedir: __dirname + '/sample-pages',
+        routes: './routes'
+      });
+
+      pages.set('user', './user');
+      pages.set('article', './article');
+
       pages.bundle({output: __dirname + '/bundles'});
       pages.on('bundled', function(entryInfo) {
         //console.log(JSON.stringify(entryInfo, null, 2));
-        expect(entryInfo.user.length).to.be(5);
-        expect(entryInfo.article.length).to.be(5);
+        expect(entryInfo.user.length).to.be(4);
+        expect(entryInfo.article.length).to.be(4);
         done();
       });
     });
 
-    it('should serve', function(done) {
-      var pages = Pages(); // creates express app
-      pages.add('user', require.resolve('./sample-pages/user'));
-      pages.add('article', require.resolve('./sample-pages/article'));
+    describe('routing', function() {
 
-      pages.get('user', function(req, res) {
-        var username = res.page.props.username;
-        res.page.setProps({upper: username.toUpperCase()});
-        res.page.send();
+      it('should fall through when no route', function(done) {
+        var pages = Pages({basedir: __dirname + '/no-route'});
+        pages.routes('./routes');
+
+        var app = express();
+        app.use(pages);
+        app.use(function(req, res) {
+          res.status(404).send('some 404 message');
+        });
+
+        var request = supertest(app);
+        request.get('/some/url')
+        .expect(404, /some 404 message/, done);
       });
 
-      pages.bundle({output: __dirname + '/bundles'});
-      pages.on('bundled', function(entryInfo) {
-        //console.log(JSON.stringify(entryInfo, null, 2));
-        expect(entryInfo.user.length).to.be(5);
-        expect(entryInfo.article.length).to.be(5);
+      it('should fall through on POST to read-only page', function(done) {
+        var pages = Pages({basedir: __dirname + '/readonly'});
+        pages.routes('./routes');
+        pages.set('readonly', './readonly');
 
-        var request = supertest(pages.app);
-        request.get('/users/tory')
-        .expect(200, /hi user: tory/, done);
+        var app = express();
+        app.use(pages);
+        app.use(function(req, res) {
+          res.status(404).send('some 404 message');
+        });
+
+        var request = supertest(app);
+
+        request.get('/readonly')
+        .expect(200, function(err, res) {
+          if (err) return done(err);
+
+          request.post('/readonly')
+          .expect(404, /some 404 message/, done);
+        });
+      });
+
+    });
+
+    describe('secrets', function() {
+      var request;
+
+      before(function() {
+        var pages = Pages({basedir: __dirname + '/secrets'});
+        pages.routes('./routes');
+        pages.set('set-fail', './set-fail');
+        pages.set('set-success', './set-success');
+
+        var app = express();
+        app.use(pages);
+        app.use(function(err, req, res, next) {
+          res.status(500).send(err.message)
+        });
+
+        request = supertest(app);
+      });
+
+      it('should disallow setting secret', function(done) {
+        request.get('/set-fail')
+        .expect(500, /undefined/, done);
+      });
+
+      it('should set a secret', function(done) {
+        request.get('/set-success')
+        .expect('set-cookie', /sshh/)
+        .expect(200, done);
       });
     });
 
-    it('should redirect', function(done) {
-      var pages = Pages();
-      pages.add('redirector', require.resolve('./sample-pages/redirector'));
-      pages.get('redirector', function(req, res) {
-        res.page.send();
-      });
-      pages.bundle({output: __dirname + '/bundles'});
-      pages.on('bundled', function() {
+    describe('csrf', function() {
+      it('should place token in html', function(done) {
+        var pages = Pages({basedir: __dirname + '/csrf'});
+        pages.routes('./routes');
+        pages.set('csrf', './csrf');
 
-        supertest(pages.app)
-        .get('/redirector')
-        .redirects(0)
-        .expect(302, done);
+        var app = express();
+        app.use(pages);
+
+        supertest(app).get('/csrf')
+        .expect(200, /^_csrf_tokey=[0-9a-zA-Z-]+$/, done);
       });
     });
   });
 
-  describe.only('iso', function() {
+  describe('iso', function() {
     
     it('should pass all tests', function(done) {
       this.timeout(0);
       iso({
         basedir: __dirname + '/iso',
+        debug: true,
         manual: true
       }, done);
     });

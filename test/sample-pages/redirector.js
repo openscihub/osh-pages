@@ -1,19 +1,11 @@
-var Path = require('osh-path');
-var Page = require('osh-page');
-
-module.exports = Page.extend({
-  path: Path({
-    pattern: '/redirector',
-    query: {stay: /[^\/]+/}
-  }),
-
-  get: function(done) {
+module.exports = {
+  read: function(pages, render) {
     if (this.props.stay) {
-      this.body = 'Great success';
+      this.setState({body: 'Great success'});
+      render();
     }
     else {
-      this.redirect(this.name, {stay: false});
+      render(this.name, {stay: false});
     }
-    done();
   }
-});
+};
