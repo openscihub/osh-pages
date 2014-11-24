@@ -169,6 +169,7 @@ function create(opts) {
                 'id="' + Stash.ID + '" ' +
                 'data-data="' + this.escape(
                   JSON.stringify({
+                    name: this.name,
                     props: this.props,
                     state: this._stashedState,
                     csrf: renderHook.csrf

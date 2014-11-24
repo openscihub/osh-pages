@@ -1,6 +1,6 @@
 {
   "name": "osh-pages",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "openscihub.org: manage web pages isomorphically",
   "main": "index.js",
   "browser": {

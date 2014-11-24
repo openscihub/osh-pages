@@ -111,7 +111,7 @@ describe('pages', function() {
         app.use(pages);
 
         supertest(app).get('/csrf')
-        .expect(200, /^_csrf_tokey=[0-9a-zA-Z-]+$/, done);
+        .expect(200, /^_csrf_tokey=[0-9a-zA-Z-_]+$/, done);
       });
     });
   });

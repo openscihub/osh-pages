@@ -1,4 +1,3 @@
-var expect = require('expect.js');
 var stem = require('osh-iso-test');
 var firstRun = true;
 
