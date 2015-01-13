@@ -16,6 +16,10 @@ var RunPrivately = {
     if (pages.session.secrets.refreshToken !== 'badf00d') {
       done(new Error('bad secret'));
     }
+    else if (pages.session.secrets.clientSecret !== 'sshh') {
+      // Check for static secret.
+      done(new Error('no static secret.'));
+    }
     else {
       pages.session.setState({accessToken: 'deadbeef2'});
       done();

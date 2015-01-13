@@ -14,6 +14,7 @@ var RE_MULTIPART = /^multipart\/form-data/;
 
 function create(opts) {
   var Session = opts.Session || DefaultSession;
+  var secrets = opts.secrets || {};
 
   extend(pages, ServerPages.prototype);
   ServerPages.call(pages, opts);
@@ -47,6 +48,7 @@ function create(opts) {
     page.privately = function(fn, done) {
       if (session.secrets === undefined) {
         session.loadSecrets();
+        extend(session.secrets, secrets);
       }
       page[fn](readWriteHook, done);
     };
@@ -62,6 +64,8 @@ function create(opts) {
       }
 
       session.loadSecrets();
+      extend(session.secrets, secrets);
+
       page[fn](readWriteHook, function(err) {
         if (err) {
           res.status(500);

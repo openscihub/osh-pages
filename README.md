@@ -177,6 +177,8 @@ pages.on('bundled', function() {
     - default: `process.cwd()`
     - required: yes
     - type: `String`
+  - `secrets`: An object of static secrets. These will be merged into the
+    session secrets whenever a private method is called.
   - `routes`: See documentation for [routes()](#pagesroutesname-page).
 
 Call this to create a new pages instance on the server; it returns
