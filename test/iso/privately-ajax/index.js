@@ -6,6 +6,9 @@ module.exports = function(app, done) {
   pages.routes('./routes');
   pages.set('run', './run');
 
+  pages.fn('getAccessToken', require('../privately/get-access-token'));
+  pages.fn('refreshAccessToken', require('../privately/refresh-access-token'));
+
   pages.bundle({
     output: './bundles',
     prefix: '/'

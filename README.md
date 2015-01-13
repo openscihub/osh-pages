@@ -177,8 +177,6 @@ pages.on('bundled', function() {
     - default: `process.cwd()`
     - required: yes
     - type: `String`
-  - `secrets`: An object of static secrets. These will be merged into the
-    session secrets whenever a private method is called.
   - `routes`: See documentation for [routes()](#pagesroutesname-page).
 
 Call this to create a new pages instance on the server; it returns
@@ -224,6 +222,46 @@ module.exports = {
 
 Register page logic with a route. You need to register by way of a module
 path so that Pages can bundle your javascript.
+
+#### pages.fn(name, fn)
+
+- `name`: The name of the server function.
+- `fn`: The server function.
+  - Signature: `fn(opts, done)` where `opts` is POJO data and `done` is
+    a callback. Pass error and result as first and second arg, respectively,
+    to `done`.
+
+Register a server function (or remote procedure) with the Pages instance.  A
+server function is callable within a [Page's](#page) read/write methods and
+runs on only the server (when called in the browser, an AJAX request handles
+the function call for you, being careful to send and check a CSRF token
+for security).
+
+Use server functions when a task needs to be performed privately, like
+authenticating with an OAuth2-capable API server.
+
+Within the server function, `this` has the following properties:
+
+- `this.session`: The current [Session](#session) instance.
+
+Example:
+
+```js
+pages.fn('refreshAccessToken', function(opts, done) {
+  request.post('https://api.api.api/oauth/token')
+  .auth('thewebs', 'sshh')
+  .send({
+    grant_type: 'refresh_token',
+    refresh_token: 'badf00d'
+  })
+  .end(function(err, res) {
+    if (err) done(err);
+    else {
+      done(null, res.body.access_token);
+    }
+  });
+});
+```
 
 #### pages.bundle(opts)
 
@@ -290,6 +328,9 @@ and managing session state:
   - `pages.current.props`
   - `pages.current.state`
 
+It also houses every server function registered with
+[pages.fn()](#pagesfnname-fn).
+
 The `render` callback doubles as a redirector; passing it either a URI or a
 name/props pair will skip rendering of the current page and either send a 302
 response (if running on the server) or begin an AJAX GET of the indicated page
@@ -344,6 +385,9 @@ The `pages` object contains the following properties to help with
 managing session state:
 
 - `pages.session`: The current [Session](#session) instance.
+
+It also houses every server function registered with
+[pages.fn()](#pagesfnname-fn).
 
 Inside the write method, `this.payload` is used to access the data that was
 POSTed from the form. Standard urlencoded forms will result in a simple

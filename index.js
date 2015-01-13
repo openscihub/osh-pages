@@ -4,17 +4,19 @@ var Cookies = require('./lib/server-cookies');
 var DefaultSession = require('./lib/server-session');
 var Csrf = require('./lib/csrf');
 var CSRF_HEADER = require('./lib/csrf-header');
-var parseURLEncodedForm = require('body-parser').urlencoded({extended: false});
 var EventEmitter = require('events').EventEmitter;
 var extend = require('xtend/mutable');
 var Busboy = require('busboy');
 var Stash = require('./lib/stash');
+var bodyParser = require('body-parser');
+
+var parseURLEncodedForm = bodyParser.urlencoded({extended: false});
+var parseJSONBody = bodyParser.json();
 
 var RE_MULTIPART = /^multipart\/form-data/;
 
 function create(opts) {
   var Session = opts.Session || DefaultSession;
-  var secrets = opts.secrets || {};
 
   extend(pages, ServerPages.prototype);
   ServerPages.call(pages, opts);
@@ -23,59 +25,60 @@ function create(opts) {
 
   function pages(req, res, next) {
     var method = req.method;
-    var rwOnly = req.query.__rw__;
 
     // Routing.
     var page = pages.init(method, req.url);
+    var fn = pages.fn(req.url);
 
-    if (!page) return next();
+    if (!page && !fn) {
+      return next();
+    }
     //console.log('attempting to send page', page.name, page.props);
 
     var cookies = new Cookies(req, res);
     var session = new Session({cookies: cookies, secure: opts.secure});
     var csrf = new Csrf({cookies: cookies, secure: opts.secure});
 
-    // Passed in to read/write methods and any custom methods executed
-    // privately.
-    var readWriteHook = {
-      current: {
-        props: {},
-        state: {}
+    // Passed in to read/write methods when handling pages and used as
+    // the this object for RPCs.
+    var readWriteHook = extend(
+      {
+        current: {
+          props: {},
+          state: {}
+        },
+        session: session
       },
-      session: session
-    };
+      pages.fns()
+    );
 
-    page.privately = function(fn, done) {
-      if (session.secrets === undefined) {
-        session.loadSecrets();
-        extend(session.secrets, secrets);
-      }
-      page[fn](readWriteHook, done);
-    };
-
-    var fn;
-    if (fn = req.query.__fn__) {
+    if (fn) {
       var csrfToken = req.get(CSRF_HEADER);
-
       if (!csrfToken || !csrf.verifyToken(csrfToken)) {
         throw new Error(
           'ECSRF: bad csrf in rpc attempt.'
         );
       }
 
-      session.loadSecrets();
-      extend(session.secrets, secrets);
-
-      page[fn](readWriteHook, function(err) {
-        if (err) {
-          res.status(500);
-          res.send({
-            message: err.message
-          });
-        }
+      parseJSONBody(req, res, function(err) {
+        if (err) next(err);
         else {
-          res.send({
-            state: page.state
+          fn.call(readWriteHook, req.body, function(err, result) {
+            if (err) {
+              res.status(500);
+              res.send({
+                message: err.message
+              });
+            }
+            else {
+              res.send({
+                result: result || {},
+                csrf: {
+                  name: Csrf.NAME,
+                  value: csrf.newToken()
+                }
+              });
+            }
           });
         }
       });

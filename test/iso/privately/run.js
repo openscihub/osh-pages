@@ -1,34 +1,9 @@
 var iso = require('osh-iso-test');
 
 var RunPrivately = {
-  getAccessToken: function(pages, done) {
-    try {
-      pages.session.setState({accessToken: 'deadbeef'});
-      pages.session.setSecrets({refreshToken: 'badf00d'});
-      done();
-    }
-    catch (err) {
-      done(err);
-    }
-  },
-
-  refreshAccessToken: function(pages, done) {
-    if (pages.session.secrets.refreshToken !== 'badf00d') {
-      done(new Error('bad secret'));
-    }
-    else if (pages.session.secrets.clientSecret !== 'sshh') {
-      // Check for static secret.
-      done(new Error('no static secret.'));
-    }
-    else {
-      pages.session.setState({accessToken: 'deadbeef2'});
-      done();
-    }
-  },
-
   read: function(pages, render) {
     if (this.props.refresh) {
-      this.privately('refreshAccessToken', function(err) {
+      pages.refreshAccessToken({msg: 'refresh'}, function(err) {
         if (err) iso.fail(err.message);
         else if (pages.session.state.accessToken !== 'deadbeef2') {
           iso.fail('access token not updated');
@@ -37,7 +12,7 @@ var RunPrivately = {
       });
     }
     else {
-      this.privately('getAccessToken', function(err) {
+      pages.getAccessToken({msg: 'access'}, function(err) {
         if (err) iso.fail(err.message);
         else if (pages.session.state.accessToken !== 'deadbeef') {
           iso.fail('access token not set');

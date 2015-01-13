@@ -80,6 +80,11 @@ describe('pages', function() {
         pages.set('set-fail', './set-fail');
         pages.set('set-success', './set-success');
 
+        pages.fn('setIt', function(opts, done) {
+          this.session.setSecrets({secret: 'sshh'});
+          done();
+        });
+
         var app = express();
         app.use(pages);
         app.use(function(err, req, res, next) {
