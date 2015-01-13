@@ -37,6 +37,10 @@ function create(opts) {
     // Passed in to read/write methods and any custom methods executed
     // privately.
     var readWriteHook = {
+      current: {
+        props: {},
+        state: {}
+      },
       session: session
     };
 
