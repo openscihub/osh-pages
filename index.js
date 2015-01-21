@@ -141,32 +141,12 @@ function create(opts) {
         throw new Error('EPOST: Bad POST content-type');
       }
 
-      function redirect(name, props) {
-        var uri;
-        if (props === undefined) {
-          uri = name;
-        }
-        else {
-          var route = pages.route('GET', name, props);
-          uri = route.uri;
-        }
-        res.redirect(uri);
-        page = null;
-        session = null;
-      }
     }
     else if (method === 'GET') {
-      page.read(readWriteHook, function() {
-        res.status(page.status || 200);
-        if (page._redirect) {
-          var redirect = page._redirect;
-          var info = pages.route(redirect.action, redirect.args);
-          if (!info) {
-            throw new Error('EREDIRECT: route not found');
-          }
-          res.redirect(info.uri);
-        }
+      page.read(readWriteHook, function(name, props) {
+        if (name) redirect(name, props);
         else {
+          res.status(page.status || 200);
           var renderHook = {
             csrf: {
               name: Csrf.NAME,
@@ -195,12 +175,27 @@ function create(opts) {
           res.send(
             page.renderToString(renderHook)
           );
+
+          session = null;
+          page = null;
         }
-        session = null;
-        page = null;
       });
     }
     else next();
+
+    function redirect(name, props) {
+      var uri;
+      if (props === undefined) {
+        uri = name;
+      }
+      else {
+        var route = pages.route('GET', name, props);
+        uri = route.uri;
+      }
+      res.redirect(uri);
+      page = null;
+      session = null;
+    }
   }
 }
 
